@@ -1,22 +1,10 @@
 import { MainNav } from "@/components/main-nav";
 import { BlogCard } from "@/components/blog-card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Footer } from "@/components/footer";
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
-  const { user, login, logout } = useAuth();
-
-  // Example: Handle user login status
-  const handleAuthAction = () => {
-    if (user) {
-      logout();
-    } else {
-      login();
-    }
-  };
-
   const emptyCards = Array(16).fill(null).map((_, index) => ({
     title: "Create New Blog Post",
     excerpt: "Click to start writing your next blog post",
@@ -57,12 +45,6 @@ export default function Home() {
         </div>
       </div>
       <Footer />
-      {/* Add Auth Button */}
-      <div className="fixed top-8 right-8">
-        <Button onClick={handleAuthAction}>
-          {user ? `Logout (${user.name})` : "Login"}
-        </Button>
-      </div>
     </main>
   );
 }
