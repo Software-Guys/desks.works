@@ -12,33 +12,57 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export function UserNav() {
   const router = useRouter();
+  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    const userEmail = localStorage.getItem('userEmail');
+    
+    if (token && userEmail) {
+      setUser({ 
+        email: userEmail, 
+        name: userEmail.split('@')[0] 
+      });
+    }
+  }, []);
 
   const handleLogout = () => {
-    // Implement your logout logic here
-    // For example, clear user session and redirect to login page
-    console.log("User logged out");
+    // Clear user session
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    
+    // Redirect to login page
     router.push("/login");
   };
+
+  if (!user) {
+    return (
+      <Button onClick={() => router.push("/login")}>
+        Login
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt="@username" />
-            <AvatarFallback>UN</AvatarFallback>
+            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">username</p>
+            <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              user@example.com
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>

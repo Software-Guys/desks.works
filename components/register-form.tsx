@@ -98,4 +98,4 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   );
 };
 
-export default RegisterForm;
+
