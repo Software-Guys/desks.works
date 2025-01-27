@@ -6,24 +6,34 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { email, password, setEmail, setPassword, login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const data = await login();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userEmail', email);
-      
-      toast.success('Login Successful');
-      router.push('/dashboard');
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        document.cookie = `token=${data.token}; path=/; Secure; HttpOnly`;
+        toast.success('Login Successful');
+        router.push('/dashboard');
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
     }
   };
 
@@ -52,7 +62,7 @@ export default function LoginPage() {
         </form>
         <div className="text-center">
           <p>
-            Don't have an account? {' '}
+            Don't have an account?{' '}
             <Link href="/register" className="text-primary hover:underline">
               Register
             </Link>
