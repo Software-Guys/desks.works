@@ -6,9 +6,25 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { UserNav } from "./user-nav";
+import { useState, useEffect } from "react";
 
 export function MainNav() {
   const pathname = usePathname();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check authentication by verifying the token with the server
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/user"); // Verifies token from HttpOnly cookie
+        setIsAuthenticated(response.ok);
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   return (
     <div className="border-b">
@@ -34,7 +50,11 @@ export function MainNav() {
         </nav>
         <div className="flex items-center space-x-4">
           <ThemeToggle />
-          <UserNav />
+          {isAuthenticated ? <UserNav /> : (
+            <Button variant="default" size="sm" onClick={() => window.location.href = "/login"}>
+              Login
+            </Button>
+          )}
         </div>
       </div>
     </div>

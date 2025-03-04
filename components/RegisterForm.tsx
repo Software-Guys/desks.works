@@ -68,12 +68,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold text-center">Create Your Account</h2>
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+      <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-xl shadow-md border border-border">
+        <h2 className="text-2xl font-bold text-center text-foreground">Create Your Account</h2>
+        
+        {error && <div className="bg-destructive/10 text-destructive p-3 rounded mb-4">{error}</div>}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">
               Email Address
             </label>
             <Input
@@ -86,8 +88,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
               required
             />
           </div>
+          
           <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
               Password
             </label>
             <Input
@@ -104,16 +107,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
               type="button"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-10 transform -translate-y-1/2 text-gray-500"
+              className="absolute right-3 top-10 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
+          
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Registering...' : 'Register'}
           </Button>
         </form>
-        <div className="text-center">
+        
+        <div className="text-center text-muted-foreground">
           <p>
             Already have an account?{' '}
             <Link href="/login" className="text-primary hover:underline">

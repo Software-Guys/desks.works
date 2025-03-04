@@ -1,6 +1,7 @@
 "use client";
 
-import { type Editor } from '@tiptap/react';
+import { toast } from "react-hot-toast";
+import { type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -25,31 +26,31 @@ import {
   Table as TableIcon,
   CheckSquare,
   Highlighter,
-} from 'lucide-react';
-import { Toggle } from '@/components/ui/toggle';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useState } from 'react';
+} from "@/components/ui/select";
+import { useState } from "react";
 
 interface EditorToolbarProps {
   editor: Editor | null;
 }
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
-  const [linkUrl, setLinkUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   if (!editor) {
     return null;
@@ -58,17 +59,39 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const addImage = () => {
     if (imageUrl) {
       editor.chain().focus().setImage({ src: imageUrl }).run();
-      setImageUrl('');
+      setImageUrl("");
     }
   };
 
+  const isValidUrl = (url: string) => {
+    try {
+      const newUrl = new URL(url);
+      return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+  
   const setLink = () => {
-    if (linkUrl) {
-      editor.chain().focus().setLink({ href: linkUrl }).run();
-      setLinkUrl('');
+    const trimmedUrl = linkUrl.trim();
+  
+    if (!trimmedUrl) {
+      toast.error("URL cannot be empty");
+      return;
     }
+  
+    // Auto-prefix "https://" if missing
+    const finalUrl = /^https?:\/\//.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`;
+  
+    if (!isValidUrl(finalUrl)) {
+      toast.error("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+  
+    editor.chain().focus().setLink({ href: finalUrl }).run();
+    setLinkUrl("");
   };
-
+  
   const addTable = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3 }).run();
   };
@@ -77,16 +100,21 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
     <div className="border rounded-lg p-2 flex flex-wrap gap-2">
       <div className="flex items-center gap-1 border-r pr-2">
         <Select
-          value={editor.isActive('heading', { level: 1 }) ? 'h1' : 
-                 editor.isActive('heading', { level: 2 }) ? 'h2' : 'p'}
-            onValueChange={(value) => {
-            if (value === 'p') {
+          value={
+            editor.isActive("heading", { level: 1 })
+              ? "h1"
+              : editor.isActive("heading", { level: 2 })
+              ? "h2"
+              : "p"
+          }
+          onValueChange={(value) => {
+            if (value === "p") {
               editor.chain().focus().setParagraph().run();
             } else {
               // Convert "h1" -> 1, "h2" -> 2, etc.
               // Cast to the exact allowed level type, e.g. as 1 | 2 | 3
-              const level = parseInt(value.replace('h', '')) as 1 | 2;
-          
+              const level = parseInt(value.replace("h", "")) as 1 | 2 | 3 | 4 | 5 | 6;
+
               editor.chain().focus().toggleHeading({ level }).run();
             }
           }}
@@ -105,29 +133,37 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="flex items-center gap-1 border-r pr-2">
         <Toggle
           size="sm"
-          pressed={editor.isActive('bold')}
+          pressed={editor.isActive("bold")}
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
+          aria-label="Toggle bold"
+          title="Bold (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('italic')}
+          pressed={editor.isActive("italic")}
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+          aria-label="Toggle italic"
+          title="Italic (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('underline')}
+          pressed={editor.isActive("underline")}
           onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
+          aria-label="Toggle underline"
+          title="Underline (Ctrl+U)"
         >
           <Underline className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('strike')}
+          pressed={editor.isActive("strike")}
           onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+          aria-label="Toggle strikethrough"
+          title="Strikethrough"
         >
           <Strikethrough className="h-4 w-4" />
         </Toggle>
@@ -136,21 +172,23 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="flex items-center gap-1 border-r pr-2">
         <Toggle
           size="sm"
-          pressed={editor.isActive('superscript')}
-          onPressedChange={() => editor.chain().focus().toggleSuperscript().run()}
+          pressed={editor.isActive("superscript")}
+          onPressedChange={() =>
+            editor.chain().focus().toggleSuperscript().run()
+          }
         >
           <Superscript className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('subscript')}
+          pressed={editor.isActive("subscript")}
           onPressedChange={() => editor.chain().focus().toggleSubscript().run()}
         >
           <Subscript className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('highlight')}
+          pressed={editor.isActive("highlight")}
           onPressedChange={() => editor.chain().focus().toggleHighlight().run()}
         >
           <Highlighter className="h-4 w-4" />
@@ -160,29 +198,37 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="flex items-center gap-1 border-r pr-2">
         <Toggle
           size="sm"
-          pressed={editor.isActive({ textAlign: 'left' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
+          pressed={editor.isActive({ textAlign: "left" })}
+          onPressedChange={() =>
+            editor.chain().focus().setTextAlign("left").run()
+          }
         >
           <AlignLeft className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive({ textAlign: 'center' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
+          pressed={editor.isActive({ textAlign: "center" })}
+          onPressedChange={() =>
+            editor.chain().focus().setTextAlign("center").run()
+          }
         >
           <AlignCenter className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive({ textAlign: 'right' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
+          pressed={editor.isActive({ textAlign: "right" })}
+          onPressedChange={() =>
+            editor.chain().focus().setTextAlign("right").run()
+          }
         >
           <AlignRight className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive({ textAlign: 'justify' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('justify').run()}
+          pressed={editor.isActive({ textAlign: "justify" })}
+          onPressedChange={() =>
+            editor.chain().focus().setTextAlign("justify").run()
+          }
         >
           <AlignJustify className="h-4 w-4" />
         </Toggle>
@@ -191,21 +237,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="flex items-center gap-1 border-r pr-2">
         <Toggle
           size="sm"
-          pressed={editor.isActive('bulletList')}
-          onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+          pressed={editor.isActive("bulletList")}
+          onPressedChange={() =>
+            editor.chain().focus().toggleBulletList().run()
+          }
         >
           <List className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('orderedList')}
-          onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+          pressed={editor.isActive("orderedList")}
+          onPressedChange={() =>
+            editor.chain().focus().toggleOrderedList().run()
+          }
         >
           <ListOrdered className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('taskList')}
+          pressed={editor.isActive("taskList")}
           onPressedChange={() => editor.chain().focus().toggleTaskList().run()}
         >
           <CheckSquare className="h-4 w-4" />
@@ -215,23 +265,21 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="flex items-center gap-1 border-r pr-2">
         <Toggle
           size="sm"
-          pressed={editor.isActive('blockquote')}
-          onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+          pressed={editor.isActive("blockquote")}
+          onPressedChange={() =>
+            editor.chain().focus().toggleBlockquote().run()
+          }
         >
           <Quote className="h-4 w-4" />
         </Toggle>
         <Toggle
           size="sm"
-          pressed={editor.isActive('codeBlock')}
+          pressed={editor.isActive("codeBlock")}
           onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
         >
           <Code className="h-4 w-4" />
         </Toggle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={addTable}
-        >
+        <Button variant="outline" size="sm" onClick={addTable}>
           <TableIcon className="h-4 w-4" />
         </Button>
       </div>

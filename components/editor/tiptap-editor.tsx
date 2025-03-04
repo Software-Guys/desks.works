@@ -34,6 +34,13 @@ export function TiptapEditor() {
       Image.configure({
         HTMLAttributes: {
           class: "rounded-lg max-w-full",
+          src: (node: { src?: string }) => {
+            if (node.src?.includes('res.cloudinary.com')) {
+              // Add Cloudinary transformations
+              return `${node.src}?q=auto:good&f=auto`;
+            }
+            return node.src;
+          },
         },
       }),
       Link.configure({
@@ -84,15 +91,28 @@ export function TiptapEditor() {
   });
 
   // Handle content sanitization before saving
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editor) return;
-    const rawContent = editor.getHTML();
-    const sanitizedContent = DOMPurify.sanitize(rawContent); // Sanitize content
-    console.log("Sanitized Content:", sanitizedContent);
-
-    // Save the sanitized content (e.g., to a database or API)
-    // saveToDatabase(sanitizedContent);
+    const content = editor.getHTML(); // Get HTML content
+    const sanitizedContent = DOMPurify.sanitize(content);
+    const title = "My Blog Post"; // You can add an input field for title
+    const imageUrl = ""; // Extract first image URL from content if needed
+  
+    try {
+      const response = await fetch("/api/create-blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content: sanitizedContent, imageUrl }),
+      });
+  
+      if (!response.ok) throw new Error("Failed to save blog");
+  
+      console.log("Blog saved successfully");
+    } catch (error) {
+      console.error(error);
+    }
   };
+  
 
   if (editorError) {
     return (
